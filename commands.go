@@ -5,6 +5,7 @@ import (
 	"parallel-1/generating"
 	"parallel-1/measuring"
 	"parallel-1/processing"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -29,6 +30,20 @@ func (c Command) Run(args []string) (string, error) {
 
 var Commands map[string]Command
 
+type SortableStrings []string
+
+func (s SortableStrings) Len() int {
+	return len(s)
+}
+
+func (s SortableStrings) Less(i, j int) bool {
+	return strings.Compare(s[i], s[j]) == -1
+}
+
+func (s SortableStrings) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
 func init() {
 	Commands = make(map[string]Command)
 	Commands["list"] = Command{
@@ -37,10 +52,11 @@ func init() {
 			if len(args) > 0 {
 				return "", fmt.Errorf("to many arguments provided")
 			}
-			var buffer []string
+			var buffer SortableStrings
 			for _, command := range Commands {
 				buffer = append(buffer, "    "+command.String())
 			}
+			sort.Sort(buffer)
 			return strings.Join(buffer, "\n"), nil
 		},
 		params: "",
