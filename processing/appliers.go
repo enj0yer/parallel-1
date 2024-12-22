@@ -19,4 +19,26 @@ func init() {
 		}
 		return res, nil
 	}
+	IntAppliers["prime"] = func(n int) (int, error) {
+		if n < 2 {
+			return 0, nil
+		}
+		for i := 2; i*i <= n; i++ {
+			if n%i == 0 {
+				return 0, nil
+			}
+		}
+		return 1, nil
+	}
+	IntAppliers["fib"] = func(n int) (int, error) {
+		if n <= 1 {
+			return n, nil
+		}
+
+		prev, curr := 0, 1
+		for i := 2; i <= n; i++ {
+			prev, curr = curr, prev+curr
+		}
+		return curr, nil
+	}
 }
