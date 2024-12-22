@@ -3,6 +3,7 @@ package generating
 import (
 	"bufio"
 	"fmt"
+	"math/rand"
 	"os"
 	"strconv"
 )
@@ -34,7 +35,7 @@ func GenerateFile(filename string, nums int) error {
 	writer := bufio.NewWriter(file)
 
 	for i := 0; i < nums; i++ {
-		if _, err := writer.WriteString(fmt.Sprintf("%d\n", i)); err != nil {
+		if _, err := writer.WriteString(fmt.Sprintf("%d\n", rand.Intn(101))); err != nil {
 			return fmt.Errorf("unable to write in file %s: %w", prefix+filename, err)
 		}
 	}
