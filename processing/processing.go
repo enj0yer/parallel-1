@@ -6,6 +6,12 @@ import (
 	"sync"
 )
 
+type ResultChunk[E any] struct {
+	data  []E
+	start int
+	end   int
+}
+
 type Converter[T int, E any] struct {
 	items   []T
 	applier func(T) (E, error)
@@ -21,9 +27,8 @@ func (c *Converter[T, E]) ProcessSequentially() ([]E, error) {
 
 func (c *Converter[T, E]) ProcessSimultaneously(threads int) ([]E, error) {
 	var result []E = make([]E, len(c.items))
-	mutex := sync.Mutex{}
+	resultChan := make(chan ResultChunk[E], threads)
 	wg := sync.WaitGroup{}
-
 	chunkSize := int(math.Ceil(float64(len(c.items)) / float64(threads)))
 
 	for i := 0; i < threads; i++ {
@@ -39,18 +44,25 @@ func (c *Converter[T, E]) ProcessSimultaneously(threads int) ([]E, error) {
 
 		wg.Add(1)
 		go func(start int, end int) {
-			defer wg.Done()
 			buffer, err := c.processChunk(c.items[start:end])
 			if err != nil {
 				fmt.Printf("error while processing chunk from %d to %d: %v", start, end, err)
 				return
 			}
-			mutex.Lock()
-			copy(result[start:end], buffer)
-			mutex.Unlock()
+			resultChan <- ResultChunk[E]{data: buffer, start: start, end: end}
+			wg.Done()
 		}(start, end)
 	}
-	wg.Wait()
+
+	go func() {
+		wg.Wait()
+		close(resultChan)
+	}()
+
+	for item := range resultChan {
+		copy(result[item.start:item.end], item.data)
+	}
+
 	return result, nil
 }
 
