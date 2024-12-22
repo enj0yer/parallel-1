@@ -44,13 +44,13 @@ func (c *Converter[T, E]) ProcessSimultaneously(threads int) ([]E, error) {
 
 		wg.Add(1)
 		go func(start int, end int) {
+			defer wg.Done()
 			buffer, err := c.processChunk(c.items[start:end])
 			if err != nil {
 				fmt.Printf("error while processing chunk from %d to %d: %v", start, end, err)
 				return
 			}
 			resultChan <- ResultChunk[E]{data: buffer, start: start, end: end}
-			wg.Done()
 		}(start, end)
 	}
 
