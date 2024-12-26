@@ -9,6 +9,7 @@ func main() {
 
 	if len(os.Args) < 2 {
 		fmt.Printf("no command provided\n")
+		fmt.Println("try command list to show all possible commands")
 		return
 	}
 	name := os.Args[1]
